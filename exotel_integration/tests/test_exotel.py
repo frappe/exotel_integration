@@ -56,7 +56,7 @@ class TestExotel(FrappeAPITestCase):
 
 	def emulate_api_call_from_exotel(self, api_method, data):
 		self.post(
-			f"/api/method/erpnext.erpnext_integrations.exotel_integration.{api_method}",
+			f"/api/method/exotel_integration.exotel_integration.exotel_integration.{api_method}",
 			data=frappe.as_json(data),
 			content_type="application/json",
 			as_tuple=True,
