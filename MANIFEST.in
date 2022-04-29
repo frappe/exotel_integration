@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include exotel_integration *.css
+recursive-include exotel_integration *.csv
+recursive-include exotel_integration *.html
+recursive-include exotel_integration *.ico
+recursive-include exotel_integration *.js
+recursive-include exotel_integration *.json
+recursive-include exotel_integration *.md
+recursive-include exotel_integration *.png
+recursive-include exotel_integration *.py
+recursive-include exotel_integration *.svg
+recursive-include exotel_integration *.txt
+recursive-exclude exotel_integration *.pyc
