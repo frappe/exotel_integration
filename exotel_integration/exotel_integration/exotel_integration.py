@@ -6,10 +6,18 @@ from frappe import _
 # api/method/erpnext.erpnext_integrations.exotel_integration.handle_end_call
 # api/method/erpnext.erpnext_integrations.exotel_integration.handle_missed_call
 
+from frappe.integrations.utils import create_request_log
 
 @frappe.whitelist(allow_guest=True)
 def handle_incoming_call(**kwargs):
 	try:
+		request_log = create_request_log(
+			kwargs,
+			request_description="Exotel Incoming Call",
+			service_name="Exotel",
+			request_headers=frappe.request.headers
+		)
+		request_log.status = "Completed"
 		exotel_settings = get_exotel_settings()
 		if not exotel_settings.enabled:
 			return
@@ -25,9 +33,13 @@ def handle_incoming_call(**kwargs):
 		else:
 			update_call_log(call_payload, call_log=call_log)
 	except Exception as e:
+		request_log.status = "Failed"
+		request_log.error = frappe.get_traceback()
 		frappe.db.rollback()
 		frappe.log_error(title=_("Error in Exotel incoming call"))
 		frappe.db.commit()
+	finally:
+		request_log.save(ignore_permissions=True)
 
 
 @frappe.whitelist(allow_guest=True)
@@ -131,3 +143,16 @@ def get_exotel_endpoint(action):
 	return "https://{api_key}:{api_token}@api.exotel.com/v1/Accounts/{sid}/{action}".format(
 		api_key=settings.api_key, api_token=settings.api_token, sid=settings.account_sid, action=action
 	)
+
+def validate_request():
+	# workaround security since exotel does not support request signature
+	# /api/method/<exotel-integration-method>/<key>
+	key = ''
+	webhook_key = frappe.db.get_single_value('Exotel Settings', 'webhook_key')
+	path = frappe.request.path[1:].split("/")
+	if len(path) == 4 and path[3]:
+		key = path[3]
+	is_valid = key and key == webhook_key
+
+	if not is_valid:
+		frappe.throw(_('Unauthorized request'), exc=frappe.PermissionError)
