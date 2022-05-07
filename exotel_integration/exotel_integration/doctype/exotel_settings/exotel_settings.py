@@ -19,4 +19,4 @@ class ExotelSettings(Document):
 				auth=(self.api_key, self.api_token),
 			)
 			if response.status_code != 200:
-				frappe.throw(_("Invalid credentials"))
+				frappe.throw(_(f"Please enter valid exotel Account SID, API key & API token {response.reason}"), title=_("Invalid credentials"))
