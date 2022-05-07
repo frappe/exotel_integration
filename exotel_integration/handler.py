@@ -2,15 +2,23 @@ import frappe
 import requests
 from frappe import _
 
-# api/method/erpnext.erpnext_integrations.exotel_integration.handle_incoming_call
-# api/method/erpnext.erpnext_integrations.exotel_integration.handle_end_call
-# api/method/erpnext.erpnext_integrations.exotel_integration.handle_missed_call
+# Endpoints for webhook
+#
+# Incoming Call:
+# <site>/api/method/exotel_integration.handler.handle_request/<key>
+
+# Exotel Reference:
+# https://developer.exotel.com/api/
+# https://support.exotel.com/support/solutions/articles/48283-working-with-passthru-applet
 
 from frappe.integrations.utils import create_request_log
 
 @frappe.whitelist(allow_guest=True)
-def handle_incoming_call(**kwargs):
+def handle_request(**kwargs):
 	try:
+		if not is_integration_enabled():
+			return
+
 		request_log = create_request_log(
 			kwargs,
 			request_description="Exotel Incoming Call",
@@ -24,34 +32,52 @@ def handle_incoming_call(**kwargs):
 
 		call_payload = kwargs
 		status = call_payload.get("Status")
-		if status == "free":
+		direction = call_payload.get('Direction')
+		if status == 'free' or direction != 'incoming':
 			return
 
-		call_log = get_call_log(call_payload)
-		if not call_log:
-			create_call_log(call_payload)
-		else:
+		if call_log := get_call_log(call_payload):
 			update_call_log(call_payload, call_log=call_log)
+		else:
+			create_call_log(
+				call_id=call_payload.get('CallSid'),
+				from_number=call_payload.get('CallFrom'),
+				to_number=call_payload.get('DialWhomNumber'),
+				medium=call_payload.get('To'),
+				status=get_call_log_status(call_payload)
+			)
 	except Exception as e:
 		request_log.status = "Failed"
 		request_log.error = frappe.get_traceback()
 		frappe.db.rollback()
-		frappe.log_error(title=_("Error in Exotel incoming call"))
+		frappe.log_error(title="Error while creating incoming call record")
 		frappe.db.commit()
 	finally:
 		request_log.save(ignore_permissions=True)
 
+def update_call_log(call_payload, status='Ringing', call_log=None):
+	call_log = call_log or get_call_log(call_payload)
+	status = get_call_log_status(call_payload)
+	try:
+		if call_log:
+			call_log.status = status
+			# resetting this because call might be redirected to other number
+			call_log.to = call_payload.get('DialWhomNumber')
+			call_log.duration = call_payload.get('DialCallDuration') or 0
+			call_log.recording_url = call_payload.get('RecordingUrl')
+			call_log.start_time = call_payload.get('StartTime')
+			call_log.end_time = call_payload.get('EndTime')
+			call_log.save(ignore_permissions=True)
+			frappe.db.commit()
+			return call_log
+	except Exception as e:
+		frappe.log_error(title="Error while updating incoming call record")
+		frappe.db.commit()
 
-@frappe.whitelist(allow_guest=True)
-def handle_end_call(**kwargs):
-	update_call_log(kwargs, "Completed")
-
-
-@frappe.whitelist(allow_guest=True)
-def handle_missed_call(**kwargs):
-	status = ""
-	call_type = kwargs.get("CallType")
-	dial_call_status = kwargs.get("DialCallStatus")
+def get_call_log_status(call_payload):
+	status = call_payload.get('DialCallStatus')
+	call_type = call_payload.get("CallType")
+	dial_call_status = call_payload.get("DialCallStatus")
 
 	if call_type == "incomplete" and dial_call_status == "no-answer":
 		status = "No Answer"
@@ -59,24 +85,10 @@ def handle_missed_call(**kwargs):
 		status = "Canceled"
 	elif call_type == "incomplete" and dial_call_status == "failed":
 		status = "Failed"
+	elif call_type == "completed":
+		status = "Completed"
 
-	update_call_log(kwargs, status)
-
-
-def update_call_log(call_payload, status="Ringing", call_log=None):
-	call_log = call_log or get_call_log(call_payload)
-
-	# for a new sid, call_log and get_call_log will be empty so create a new log
-	if not call_log:
-		call_log = create_call_log(call_payload)
-	if call_log:
-		call_log.status = status
-		call_log.to = call_payload.get("DialWhomNumber")
-		call_log.duration = call_payload.get("DialCallDuration") or 0
-		call_log.recording_url = call_payload.get("RecordingUrl")
-		call_log.save(ignore_permissions=True)
-		frappe.db.commit()
-		return call_log
+	return status
 
 
 def get_call_log(call_payload):
@@ -84,14 +96,17 @@ def get_call_log(call_payload):
 	if frappe.db.exists("Call Log", call_log_id):
 		return frappe.get_doc("Call Log", call_log_id)
 
-
-def create_call_log(call_payload):
-	call_log = frappe.new_doc("Call Log")
-	call_log.id = call_payload.get("CallSid")
-	call_log.to = call_payload.get("DialWhomNumber")
-	call_log.medium = call_payload.get("To")
-	call_log.status = "Ringing"
-	setattr(call_log, "from", call_payload.get("CallFrom"))
+def create_call_log(call_id, from_number, to_number, medium,
+	status='Ringing', call_type='Incoming', link_to_document=None):
+	call_log = frappe.new_doc('Call Log')
+	call_log.id = call_id
+	call_log.to = to_number
+	call_log.medium = medium
+	call_log.type = call_type
+	call_log.status = status
+	setattr(call_log, 'from', from_number)
+	if link_to_document:
+		call_log.append('links', link_to_document)
 	call_log.save(ignore_permissions=True)
 	frappe.db.commit()
 	return call_log
@@ -101,8 +116,7 @@ def create_call_log(call_payload):
 def get_call_status(call_id):
 	endpoint = get_exotel_endpoint("Calls/{call_id}.json".format(call_id=call_id))
 	response = requests.get(endpoint)
-	status = response.json().get("Call", {}).get("Status")
-	return status
+	return response.json().get("Call", {}).get("Status")
 
 
 @frappe.whitelist()
@@ -121,7 +135,7 @@ def get_exotel_settings():
 
 def whitelist_numbers(numbers, caller_id):
 	endpoint = get_exotel_endpoint("CustomerWhitelist")
-	response = requests.post(
+	return requests.post(
 		endpoint,
 		data={
 			"VirtualNumber": caller_id,
@@ -129,13 +143,10 @@ def whitelist_numbers(numbers, caller_id):
 		},
 	)
 
-	return response
-
 
 def get_all_exophones():
 	endpoint = get_exotel_endpoint("IncomingPhoneNumbers")
-	response = requests.post(endpoint)
-	return response
+	return requests.post(endpoint)
 
 
 def get_exotel_endpoint(action):
@@ -147,12 +158,13 @@ def get_exotel_endpoint(action):
 def validate_request():
 	# workaround security since exotel does not support request signature
 	# /api/method/<exotel-integration-method>/<key>
-	key = ''
 	webhook_key = frappe.db.get_single_value('Exotel Settings', 'webhook_key')
 	path = frappe.request.path[1:].split("/")
-	if len(path) == 4 and path[3]:
-		key = path[3]
+	key = path[3] if len(path) == 4 and path[3] else ''
 	is_valid = key and key == webhook_key
 
 	if not is_valid:
 		frappe.throw(_('Unauthorized request'), exc=frappe.PermissionError)
+
+def is_integration_enabled():
+	return frappe.db.get_single_value('Exotel Settings', 'enabled', True)
