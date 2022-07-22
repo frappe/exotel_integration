@@ -2,7 +2,7 @@ import frappe
 from frappe.contacts.doctype.contact.test_contact import create_contact
 from frappe.tests.test_api import FrappeAPITestCase
 
-from erpnext.hr.doctype.employee.test_employee import make_employee
+from erpnext.setup.doctype.employee.test_employee import make_employee
 
 class TestExotel(FrappeAPITestCase):
 	@classmethod
@@ -54,8 +54,7 @@ class TestExotel(FrappeAPITestCase):
 		self.post(
 			"/api/method/exotel_integration.handler.handle_request",
 			data=frappe.as_json(data),
-			content_type="application/json",
-			as_tuple=True,
+			content_type="application/json"
 		)
 		# restart db connection to get latest data
 		frappe.connect()
