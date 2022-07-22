@@ -120,13 +120,51 @@ def get_call_status(call_id):
 
 
 @frappe.whitelist()
-def make_a_call(from_number, to_number, caller_id):
-	endpoint = get_exotel_endpoint("Calls/connect.json?details=true")
-	response = requests.post(
-		endpoint, data={"From": from_number, "To": to_number, "CallerId": caller_id}
-	)
+def make_a_call(to_number, caller_id=None, link_to_document=None):
+	if not is_integration_enabled():
+		frappe.throw(_('Please setup Exotel intergration'), title=_('Integration Not Enabled'))
+
+	endpoint = get_exotel_endpoint('Calls/connect.json?details=true')
+	cell_number = frappe.get_value('Employee', {
+		'user_id': frappe.session.user
+	}, 'cell_number')
+
+	if not cell_number:
+		frappe.throw(_('You do not have mobile number set in your Employee master'))
+
+	try:
+		response = requests.post(endpoint, data={
+			'From': cell_number,
+			'To': to_number,
+			'CallerId': caller_id,
+			'Record': 'true' if frappe.db.get_single_value('Exotel Settings', 'record_call') else 'false',
+			'StatusCallback': get_status_updater_url(),
+			'StatusCallbackEvents[0]': 'terminal'
+		})
+		response.raise_for_status()
+	except requests.exceptions.HTTPError as e:
+		if exc := response.json().get('RestException'):
+			frappe.throw(bleach.linkify(exc.get('Message')), title=_('Exotel Exception'))
+	else:
+		res = response.json()
+		call_payload = res.get('Call', {})
+		if link_to_document:
+			link_to_document = json.loads(link_to_document)
+		create_call_log(
+			call_id=call_payload.get('Sid'),
+			from_number=call_payload.get('From'),
+			to_number=call_payload.get('To'),
+			medium=call_payload.get('PhoneNumberSid'),
+			call_type="Outgoing",
+			link_to_document=link_to_document
+		)
 
 	return response.json()
+
+def get_status_updater_url():
+	from frappe.utils.data import get_url
+	webhook_key = frappe.db.get_single_value('Exotel Settings', 'webhook_key')
+	return get_url(f'api/method/erpnext.erpnext_integrations.exotel_integration.update_call_status/{webhook_key}')
 
 
 def get_exotel_settings():
@@ -143,11 +181,14 @@ def whitelist_numbers(numbers, caller_id):
 		},
 	)
 
-
+@frappe.whitelist()
 def get_all_exophones():
-	endpoint = get_exotel_endpoint("IncomingPhoneNumbers")
-	return requests.post(endpoint)
-
+	endpoint = get_exotel_endpoint('IncomingPhoneNumbers.json')
+	response = requests.get(endpoint)
+	return [
+		phone.get('IncomingPhoneNumber', {}).get('PhoneNumber')
+		for phone in response.json().get('IncomingPhoneNumbers', [])
+	]
 
 def get_exotel_endpoint(action):
 	settings = get_exotel_settings()
