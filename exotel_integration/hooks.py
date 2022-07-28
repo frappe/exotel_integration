@@ -43,7 +43,7 @@ required_apps = ["erpnext"]
 
 # website user home page (by Role)
 # role_home_page = {
-#	"Role": "home_page"
+# 	"Role": "home_page"
 # }
 
 # Generators
@@ -65,12 +65,12 @@ required_apps = ["erpnext"]
 # ------------
 
 # before_install = "exotel_integration.install.before_install"
-# after_install = "exotel_integration.install.after_install"
+after_install = "exotel_integration.utils.utils.add_exotel_option"
 
 # Uninstallation
 # ------------
 
-# before_uninstall = "exotel_integration.uninstall.before_uninstall"
+before_uninstall = "exotel_integration.utils.utils.remove_exotel_option"
 # after_uninstall = "exotel_integration.uninstall.after_uninstall"
 
 # Desk Notifications
@@ -108,7 +108,7 @@ required_apps = ["erpnext"]
 # 		"on_update": "method",
 # 		"on_cancel": "method",
 # 		"on_trash": "method"
-#	}
+# 	}
 # }
 
 # Scheduled Tasks
