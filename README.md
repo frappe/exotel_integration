@@ -4,4 +4,4 @@ Exotel Integration for ERPNext
 
 #### License
 
-MIT
+GNU General Public License (v3)

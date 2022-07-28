@@ -4,11 +4,10 @@ app_name = "exotel_integration"
 app_title = "Exotel Integration"
 app_publisher = "Frappe Technologies"
 app_description = "Exotel Integration for ERPNext"
-app_icon = "octicon octicon-file-directory"
-app_color = "grey"
 app_email = "suraj@frappe.io"
-app_license = "MIT"
+app_license = "GNU General Public License (v3)"
 
+required_apps = ["erpnext"]
 # Includes in <head>
 # ------------------
 
