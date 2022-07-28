@@ -1,8 +1,8 @@
 import frappe
+from erpnext.setup.doctype.employee.test_employee import make_employee
 from frappe.contacts.doctype.contact.test_contact import create_contact
 from frappe.tests.test_api import FrappeAPITestCase
 
-from erpnext.setup.doctype.employee.test_employee import make_employee
 
 class TestExotel(FrappeAPITestCase):
 	@classmethod
@@ -13,13 +13,14 @@ class TestExotel(FrappeAPITestCase):
 			user="test_employee_exotel@company.com", cell_number="9999999999"
 		)
 		frappe.db.set_value("Exotel Settings", "Exotel Settings", "enabled", 1)
-		phones = [{"phone": "+91 9999999991", "is_primary_phone": 0, "is_primary_mobile_no": 1}]
+		phones = [
+			{"phone": "+91 9999999991", "is_primary_phone": 0, "is_primary_mobile_no": 1}
+		]
 		create_contact(name="Test Contact", salutation="Mr", phones=phones)
 		frappe.db.commit()
 
 	def test_for_successful_call(self):
 		from .exotel_test_data import call_end_data, call_initiation_data
-
 
 		self.emulate_api_call_from_exotel(call_initiation_data)
 		self.emulate_api_call_from_exotel(call_end_data)
@@ -54,7 +55,7 @@ class TestExotel(FrappeAPITestCase):
 		self.post(
 			"/api/method/exotel_integration.handler.handle_request",
 			data=frappe.as_json(data),
-			content_type="application/json"
+			content_type="application/json",
 		)
 		# restart db connection to get latest data
 		frappe.connect()
