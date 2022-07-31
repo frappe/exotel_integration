@@ -6,7 +6,7 @@ from frappe.integrations.utils import create_request_log
 # Endpoints for webhook
 #
 # Incoming Call:
-# <site>/api/method/exotel_integration.handler.handle_request/<key>
+# <site>/api/method/exotel_integration.handler.handle_request?key=<exotel-integration-key>
 
 # Exotel Reference:
 # https://developer.exotel.com/api/
@@ -15,6 +15,7 @@ from frappe.integrations.utils import create_request_log
 
 @frappe.whitelist(allow_guest=True)
 def handle_request(**kwargs):
+	validate_request()
 	try:
 		if not is_integration_enabled():
 			return
@@ -227,10 +228,9 @@ def get_exotel_endpoint(action):
 
 def validate_request():
 	# workaround security since exotel does not support request signature
-	# /api/method/<exotel-integration-method>/<key>
+	# /api/method/<exotel-integration-method>?key=<exotel-integration-key>
 	webhook_key = frappe.db.get_single_value("Exotel Settings", "webhook_key")
-	path = frappe.request.path[1:].split("/")
-	key = path[3] if len(path) == 4 and path[3] else ""
+	key = frappe.request.args.get('key')
 	is_valid = key and key == webhook_key
 
 	if not is_valid:

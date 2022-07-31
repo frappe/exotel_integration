@@ -17,6 +17,8 @@ class TestExotel(FrappeAPITestCase):
 			{"phone": "+91 9999999991", "is_primary_phone": 0, "is_primary_mobile_no": 1}
 		]
 		create_contact(name="Test Contact", salutation="Mr", phones=phones)
+		cls.webhook_key = "exotel_integration_key"
+		frappe.db.set_value("Exotel Settings", "Exotel Settings", "webhook_key", cls.webhook_key)
 		frappe.db.commit()
 
 	def test_for_successful_call(self):
@@ -53,7 +55,7 @@ class TestExotel(FrappeAPITestCase):
 
 	def emulate_api_call_from_exotel(self, data):
 		self.post(
-			"/api/method/exotel_integration.handler.handle_request",
+			f"/api/method/exotel_integration.handler.handle_request?key={self.webhook_key}",
 			data=frappe.as_json(data),
 			content_type="application/json",
 		)

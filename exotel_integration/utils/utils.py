@@ -11,7 +11,7 @@ def add_exotel_option():
 			"communication_channel",
 			"options",
 			"\n".join(options),
-   			"Text",
+			"Text",
 			validate_fields_for_doctype=False
 		)
 
@@ -20,9 +20,9 @@ def remove_exotel_option():
 	if "Exotel" in options:
 		options.remove("Exotel")
 		make_property_setter(
-      		"Communication Medium",
-        	"communication_channel",
-         	"options",
+			"Communication Medium",
+			"communication_channel",
+			"options",
 			"\n".join(options),
 			"Text",
 			validate_fields_for_doctype=False
