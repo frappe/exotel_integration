@@ -1,7 +1,11 @@
 # Exotel Integration
 
-Exotel Integration for ERPNext.
+This allows you to integrate Exotel into your ERPNext instance. Leads and their phone numbers captured via Exotel can be saved directly to your ERPNext instance.
 
+## Features
+
+- Tracks incoming calls in your ERPNext account.
+- Shows existing lead/customer information pop-up to employees when an incoming call is received.
 
 ## Installation
 1. Install [bench & ERPNext](https://github.com/frappe/erpnext#installation).
