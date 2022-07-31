@@ -23,23 +23,23 @@ This allows you to integrate Exotel into your ERPNext instance. Leads and their 
 ## Setup
 
 ### Credentials setup
-Once the installation is complete, go to you exotel account (my.exotel.com) and generate API key to setup the integration.
+Once the installation is complete, go to your Exotel account (my.exotel.com) and generate API key to setup the integration.
 
-1. In your exotel account go to "API" page.
+1. In your Exotel account go to "API" page.
 <img width="1440" alt="Screenshot 2022-07-31 at 9 02 19 AM" src="https://user-images.githubusercontent.com/13928957/182023434-b939ddef-28e9-4a8f-84b1-5baa9a8625b5.png">
 
-2. Next click on "Create API Key" and create an API key with following permissions
+2. Now click on "Create API Key" and create an API key with following permissions.
 <img width="540" alt="Screenshot 2022-07-31 at 9 13 43 AM" src="https://user-images.githubusercontent.com/13928957/182023498-df33970c-27f7-43db-80c5-f3fef5b7e5e8.png">
 
-3. Once the key is generated got to you ERPNext account and open "Exotel Settings" page. Click on enable and fill the values of "Account SID", "API Key" & "API Token"
+3. Once the key is generated go to your ERPNext account and open "Exotel Settings" page. Click on enable and fill the values of "Account SID", "API Key" & "API Token".
 ![explainer](https://user-images.githubusercontent.com/13928957/182023954-3dd3acc5-d691-4398-ae74-ee8276520d96.png)
 
 ### Setup to track calls
 
 1. Login to your Exotel account and go to App Bazar.
-2. Create a new App for a new flow.
+2. Create a new "App" for a new flow.
 3. Setup the flow as you wish it to be.
-4. In your connect API under "Create popup..." and paste URL that you'll see in your "Exotel Settings" page once you are done with the [credentials setup](#credentials-setup).
+4. In your connect API under "Create popup...", copy and paste URL that you'll see in your "Exotel Settings" page once you are done with the [credentials setup](#credentials-setup).
 <img width="1354" alt="Screenshot 2022-07-31 at 3 25 56 PM" src="https://user-images.githubusercontent.com/13928957/182024295-399e28ce-c3d6-4e0a-b670-c308b1696578.png">
 5. After that add a "Passthru applet" under "After Call Conversation ends" and paste the same URL.
 
@@ -56,7 +56,7 @@ Once the installation is complete, go to you exotel account (my.exotel.com) and 
 > **Note:** Make sure to check "Make Passthru Async".
 
 7. Save the flow.
-8. Now assign this newly created app to your **ExoPhone** from which you receive your business calls.
+8. Now assign this newly created "App" to your **ExoPhone** from which you receive your business calls.
 
 Once this is done, you should see all new incoming calls on your exotel phone number in the "Call Log" list in your ERPNext instance. 
 
