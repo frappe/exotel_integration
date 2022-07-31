@@ -18,7 +18,7 @@ Exotel Integration for ERPNext.
 
 ## Setup
 
-### Credetials setup
+### Credentials setup
 Once the installation is complete, go to you exotel account (my.exotel.com) and generate API key to setup the integration.
 
 1. In your exotel account go to "API" page.
@@ -35,7 +35,7 @@ Once the installation is complete, go to you exotel account (my.exotel.com) and 
 1. Login to your Exotel account and go to App Bazar.
 2. Create a new App for a new flow.
 3. Setup the flow as you wish it to be.
-4. In your connect API under "Create popup..." and paste URL that you'll see in your "Exotel Settings" page once you are done with the [credetials setup](#credetials-setup).
+4. In your connect API under "Create popup..." and paste URL that you'll see in your "Exotel Settings" page once you are done with the [credentials setup](#credentials-setup).
 <img width="1354" alt="Screenshot 2022-07-31 at 3 25 56 PM" src="https://user-images.githubusercontent.com/13928957/182024295-399e28ce-c3d6-4e0a-b670-c308b1696578.png">
 5. After that add a "Passthru applet" under "After Call Conversation ends" and paste the same URL.
 
