@@ -43,7 +43,7 @@ class CallHandler {
 			}],
 			primary_action: () => {
 				this.dialog.disable_primary_action();
-				frappe.xcall('erpnext.exotel_integration.exotel_integration.make_a_call', {
+				frappe.xcall('exotel_integration.handler.make_a_call', {
 					'to_number': this.dialog.get_value('to_number'),
 					'link_to_document': this.document_to_link
 				}).then(res => {
@@ -67,7 +67,7 @@ class CallHandler {
 		}
 	}
 	set_call_status() {
-		frappe.xcall('erpnext.exotel_integration.exotel_integration.get_call_status', {
+		frappe.xcall('exotel_integration.handler.get_call_status', {
 			'call_id': this.call_id
 		}).then(status => {
 			this.set_header(status);
