@@ -14,6 +14,7 @@ required_apps = ["erpnext"]
 # include js, css files in header of desk.html
 # app_include_css = "/assets/exotel_integration/css/exotel_integration.css"
 # app_include_js = "/assets/exotel_integration/js/exotel_integration.js"
+app_include_js = "/assets/exotel_integration/js/call_handler.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/exotel_integration/css/exotel_integration.css"
