@@ -35,7 +35,7 @@ def handle_request(**kwargs):
 		call_payload = kwargs
 		status = call_payload.get("Status")
 		direction = call_payload.get("Direction")
-		if status == "free" or direction != "incoming":
+		if status in ["free", "busy"]:
 			return
 
 		if call_log := get_call_log(call_payload):
@@ -66,7 +66,7 @@ def update_call_log(call_payload, status="Ringing", call_log=None):
 			call_log.status = status
 			# resetting this because call might be redirected to other number
 			call_log.to = call_payload.get("DialWhomNumber")
-			call_log.duration = call_payload.get("DialCallDuration") or 0
+			call_log.duration = call_payload.get("DialCallDuration") or kwargs.get('ConversationDuration') or 0
 			call_log.recording_url = call_payload.get("RecordingUrl")
 			call_log.start_time = call_payload.get("StartTime")
 			call_log.end_time = call_payload.get("EndTime")
@@ -74,7 +74,7 @@ def update_call_log(call_payload, status="Ringing", call_log=None):
 			frappe.db.commit()
 			return call_log
 	except Exception as e:
-		frappe.log_error(title="Error while updating incoming call record")
+		frappe.log_error(title="Error while updating call record")
 		frappe.db.commit()
 
 
@@ -180,13 +180,12 @@ def make_a_call(to_number, caller_id=None, link_to_document=None):
 
 	return response.json()
 
-
 def get_status_updater_url():
 	from frappe.utils.data import get_url
 
 	webhook_key = frappe.db.get_single_value("Exotel Settings", "webhook_key")
 	return get_url(
-		f"api/method/erpnext.erpnext_integrations.exotel_integration.update_call_status/{webhook_key}"
+		f"api/method/exotel_integration.handler.handle_request?key={webhook_key}"
 	)
 
 
