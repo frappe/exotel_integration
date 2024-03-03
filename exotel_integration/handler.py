@@ -19,16 +19,17 @@ from frappe.integrations.utils import create_request_log
 @frappe.whitelist(allow_guest=True)
 def handle_request(**kwargs):
 	validate_request()
-	try:
-		if not is_integration_enabled():
-			return
+	if not is_integration_enabled():
+		return
 
-		request_log = create_request_log(
-			kwargs,
-			request_description="Exotel Incoming Call",
-			service_name="Exotel",
-			request_headers=frappe.request.headers,
-		)
+	request_log = create_request_log(
+		kwargs,
+		request_description="Exotel Call",
+		service_name="Exotel",
+		request_headers=frappe.request.headers,
+		is_remote_request=1
+	)
+	try:
 		request_log.status = "Completed"
 		exotel_settings = get_exotel_settings()
 		if not exotel_settings.enabled:
@@ -54,7 +55,7 @@ def handle_request(**kwargs):
 		request_log.status = "Failed"
 		request_log.error = frappe.get_traceback()
 		frappe.db.rollback()
-		frappe.log_error(title="Error while creating incoming call record")
+		frappe.log_error(title="Error while creating call record")
 		frappe.db.commit()
 	finally:
 		request_log.save(ignore_permissions=True)
