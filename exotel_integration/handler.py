@@ -59,6 +59,7 @@ def handle_request(**kwargs):
 		frappe.db.commit()
 	finally:
 		request_log.save(ignore_permissions=True)
+		frappe.db.commit()
 
 
 def update_call_log(call_payload, status="Ringing", call_log=None):
