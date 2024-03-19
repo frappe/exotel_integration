@@ -107,7 +107,7 @@ class CallHandler {
 
 }
 
-frappe.db.get_single_value('Exotel Settings', 'enabled').then(is_integration_enabled => {
+frappe.xcall('exotel_integration.handler.is_integration_enabled').then(is_integration_enabled => {
 	if (is_integration_enabled) {
 		frappe.phone_call.handler = (to_number, frm) => new CallHandler(to_number, frm);
 	}

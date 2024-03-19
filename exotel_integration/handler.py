@@ -241,5 +241,6 @@ def validate_request():
 		frappe.throw(_("Unauthorized request"), exc=frappe.PermissionError)
 
 
+@frappe.whitelist()
 def is_integration_enabled():
 	return frappe.db.get_single_value("Exotel Settings", "enabled", True)
