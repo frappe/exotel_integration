@@ -56,7 +56,7 @@ class TestExotel(FrappeAPITestCase):
 	def emulate_api_call_from_exotel(self, data):
 		self.post(
 			f"/api/method/exotel_integration.handler.handle_request?key={self.webhook_key}",
-			data=frappe.as_json(data),
+			data=data,
 			content_type="application/json",
 		)
 		# restart db connection to get latest data
