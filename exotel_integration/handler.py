@@ -69,7 +69,7 @@ def update_call_log(call_payload, status="Ringing", call_log=None):
 			call_log.status = status
 			# resetting this because call might be redirected to other number
 			call_log.to = call_payload.get("DialWhomNumber")
-			call_log.duration = call_payload.get("DialCallDuration") or kwargs.get('ConversationDuration') or 0
+			call_log.duration = call_payload.get("DialCallDuration") or call_payload.get('ConversationDuration') or 0
 			call_log.recording_url = call_payload.get("RecordingUrl")
 			call_log.start_time = call_payload.get("StartTime")
 			call_log.end_time = call_payload.get("EndTime")
