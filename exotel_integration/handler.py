@@ -37,8 +37,7 @@ def handle_request(**kwargs):
 
 		call_payload = kwargs
 		status = call_payload.get("Status")
-		direction = call_payload.get("Direction")
-		if status in ["free", "busy"]:
+		if status == "free":
 			return
 
 		if call_log := get_call_log(call_payload):
@@ -95,6 +94,8 @@ def get_call_log_status(call_payload):
 		status = "Failed"
 	elif call_type == "completed":
 		status = "Completed"
+	elif dial_call_status == "busy":
+		status = "Ringing"
 
 	return status
 
