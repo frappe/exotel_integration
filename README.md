@@ -1,5 +1,8 @@
 # Exotel Integration
 
+> [!WARNING]
+> This repository is archived and is no longer maintained. Use the [Telephony](https://github.com/frappe/telephony) app instead.
+
 This allows you to integrate Exotel into your ERPNext instance. Leads and their phone numbers captured via Exotel can be saved directly to your ERPNext instance.
 
 ## Features
